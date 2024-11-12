@@ -29,16 +29,21 @@ export default function HomePage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prevSlide) => (prevSlide + 1) % streamingServices.length);
-    }, 5000); // Cambiar cada 5 segundos
+    }, 5000); // Change slide every 5 seconds
 
     return () => clearInterval(timer);
   }, []);
 
   const handleSearch = (e) => {
     if (e.key === 'Enter' && searchQuery.trim() !== "") {
-      // Redirige a /movie-details con el término de búsqueda como parámetro
+      // Redirect to /movie-details with the search term as a parameter
       router.push(`/movie-details?title=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  // Handle click on carousel image
+  const handleCarouselClick = () => {
+    router.push('/streaming-comparison'); // Navigate to streaming-comparison page
   };
 
   return (
@@ -48,7 +53,7 @@ export default function HomePage() {
         <Input 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={handleSearch} // Maneja la búsqueda cuando presionas Enter
+          onKeyDown={handleSearch}
           className="w-full rounded-full bg-white py-6 pl-4 pr-12 text-black" 
           placeholder="Search..." 
         />
@@ -59,7 +64,7 @@ export default function HomePage() {
 
       {/* Streaming Services Carousel */}
       <div className="max-w-6xl mx-auto">
-        <div className="relative h-80 overflow-hidden rounded-lg">
+        <div className="relative h-80 overflow-hidden rounded-lg" onClick={handleCarouselClick}>
           {streamingServices.map((service, index) => (
             <div
               key={index}
@@ -101,8 +106,8 @@ export default function HomePage() {
             <Card key={movie.id} className="bg-gray-800 border-0">
               <CardContent className="aspect-video relative p-0">
                 <Image
-                  src={movie.image}       // Imagen única para cada película
-                  alt={movie.name}         // Nombre único para cada película
+                  src={movie.image}
+                  alt={movie.name}
                   layout="fill"
                   objectFit="cover"
                   className="rounded-lg"
