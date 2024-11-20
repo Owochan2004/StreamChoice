@@ -12,7 +12,35 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 export default function HomePage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
+  const [searchResult, setSearchResult] = useState(null)
   const [currentSlide, setCurrentSlide] = useState(0)
+
+  const handleSearch = async () => {
+    if (searchQuery.trim() === "") return
+
+    try {
+      const res = await fetch(`http://localhost:3000/api/content/search?query=${encodeURIComponent(searchQuery.trim())}`)
+      if (!res.ok) throw new Error("Error al buscar contenido")
+
+      const data = await res.json()
+      setSearchResult(data[0]) // Muestra el primer resultado directamente en la página principal
+      router.push(`/movie-details?title=${encodeURIComponent(searchQuery.trim())}&result=${encodeURIComponent(JSON.stringify(data[0]))}`)
+    } catch (error) {
+      console.error("Error en la búsqueda:", error)
+    }
+  }
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % streamingServices.length)
+    }, 5000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  const handleCarouselClick = () => {
+    router.push('/streaming-comparison')
+  }
 
   const streamingServices = [
     { name: "Netflix", image: "/images/BrandAssets_Logos_01-Wordmark.jpg" },
@@ -56,24 +84,6 @@ export default function HomePage() {
     }
   ]
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % streamingServices.length)
-    }, 5000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  const handleSearch = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim() !== "") {
-      router.push(`/movie-details?title=${encodeURIComponent(searchQuery.trim())}`)
-    }
-  }
-
-  const handleCarouselClick = () => {
-    router.push('/streaming-comparison')
-  }
-
   return (
     <div className="min-h-screen bg-[#1a0f2e] text-white p-4">
       {/* Botón para redirigir a plataformas */}
@@ -84,23 +94,37 @@ export default function HomePage() {
             Ver Plataformas
           </button>
         </Link>
+        <div className="flex space-x-4">
+        <Link href="/login">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+            Ingresar
+          </button>
+        </Link>
+        <Link href="/register">
+          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+            Registrarse
+          </button>
+        </Link>
+        </div>
       </header>
+      
 
-      {/* Search Bar */}
+      {/* Barra de búsqueda actualizada */}
       <div className="relative max-w-2xl mx-auto mb-8">
-        <Input 
+        <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={handleSearch}
-          className="w-full rounded-full bg-white py-6 pl-4 pr-12 text-black" 
-          placeholder="Search..." 
+          className="w-full rounded-full bg-white py-6 pl-4 pr-12 text-black"
+          placeholder="Buscar contenido..."
         />
         <div className="absolute right-0 top-0 bottom-0 w-12 flex items-center justify-center bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] rounded-r-full">
-          <Search className="w-6 h-6 text-white" />
+          <button onClick={handleSearch}>
+            <Search className="w-6 h-6 text-white" />
+          </button>
         </div>
       </div>
 
-      {/* Rest of the content remains unchanged */}
+      {/* Carrusel, destacados y noticias se mantienen */}
       <div className="flex flex-col lg:flex-row gap-8 max-w-[1400px] mx-auto">
         <div className="flex-1 space-y-8">
           {/* Streaming Services Carousel */}

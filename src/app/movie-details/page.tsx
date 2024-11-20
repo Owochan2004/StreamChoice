@@ -79,19 +79,23 @@ export default function Component() {
 
               <h2 className="text-2xl font-semibold">Disponible en:</h2>
               <div className="space-y-4">
-                {searchResult.plataformas?.map((platform) => (
-                  <div key={platform.id} className="flex items-center space-x-4">
-                    <div className="w-16 h-16 relative">
-                      <Image
-                        src={platform.logo || "/images/default-logo.jpg"} // Asumiendo que hay un campo "logo" en la tabla plataformas
-                        alt={platform.nombre}
-                        layout="fill"
-                        objectFit="contain"
-                      />
+                {searchResult?.plataformas && searchResult?.logos ? (
+                  searchResult.plataformas.split(",").map((platform, index) => (
+                    <div key={index} className="flex items-center space-x-4">
+                      <div className="w-16 h-16 relative">
+                        <Image
+                          src={searchResult.logos.split(",")[index] || "/images/default-logo.jpg"} // Aquí usamos el índice para obtener el logo correspondiente
+                          alt={platform}
+                          layout="fill"
+                          objectFit="contain"
+                        />
+                      </div>
+                      <span className="text-xl">{platform}</span>
                     </div>
-                    <span className="text-xl">{platform.nombre}</span>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-gray-400">No disponible en ninguna plataforma.</p>
+                )}
               </div>
             </div>
           </div>
