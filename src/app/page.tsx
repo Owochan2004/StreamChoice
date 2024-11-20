@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Search } from 'lucide-react'
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -75,6 +76,16 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#1a0f2e] text-white p-4">
+      {/* Botón para redirigir a plataformas */}
+      <header className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Inicio</h1>
+        <Link href="/platforms">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+            Ver Plataformas
+          </button>
+        </Link>
+      </header>
+
       {/* Search Bar */}
       <div className="relative max-w-2xl mx-auto mb-8">
         <Input 
@@ -89,6 +100,7 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Rest of the content remains unchanged */}
       <div className="flex flex-col lg:flex-row gap-8 max-w-[1400px] mx-auto">
         <div className="flex-1 space-y-8">
           {/* Streaming Services Carousel */}
