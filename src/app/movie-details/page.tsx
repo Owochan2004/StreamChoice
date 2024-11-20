@@ -26,8 +26,15 @@ export default function Component() {
 
   return (
     <div className="min-h-screen bg-[#1a0f2e] text-white p-4 space-y-8">
-      {/* Header with button to redirect to platforms */}
+      {/* Header with buttons */}
       <header className="flex justify-between items-center mb-6">
+        <div>
+          <Link href="/">
+            <button className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">
+              Ir a Inicio
+            </button>
+          </Link>
+        </div>
         <h1 className="text-3xl font-bold">Detalles de la Película</h1>
         <Link href="/platforms">
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
@@ -62,13 +69,21 @@ export default function Component() {
             {/* Movie Banner */}
             <div className="md:col-span-2">
               <div className="relative aspect-video rounded-lg overflow-hidden">
-                <Image
-                  src={searchResult.imagen || "/images/default-image.jpg"} // Asumiendo que hay un campo "imagen"
-                  alt={searchResult.titulo}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-lg"
-                />
+                {searchResult.imagen_url ? (
+                  <Image
+                    src={searchResult.imagen_url} // Usa el campo "imagen_url" de tu base de datos
+                    alt={searchResult.titulo}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-lg"
+                  />
+                ) : (
+                  <img
+                    src="/images/default-image.jpg" // Imagen por defecto si no hay imagen_url
+                    alt="Imagen no disponible"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                )}
               </div>
             </div>
 
@@ -79,7 +94,7 @@ export default function Component() {
 
               <h2 className="text-2xl font-semibold">Disponible en:</h2>
               <div className="space-y-4">
-                {searchResult?.plataformas && searchResult?.logos ? (
+                {searchResult.plataformas && searchResult.logos ? (
                   searchResult.plataformas.split(",").map((platform, index) => (
                     <div key={index} className="flex items-center space-x-4">
                       <div className="w-16 h-16 relative">
