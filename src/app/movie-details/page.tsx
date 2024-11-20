@@ -24,6 +24,12 @@ export default function Component() {
     }
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#1a0f2e] text-white p-4 space-y-8">
       {/* Header with buttons */}
@@ -48,6 +54,7 @@ export default function Component() {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleKeyDown} // Manejo del evento "Enter"
           className="w-full rounded-full bg-white py-6 pl-4 pr-12 text-black"
           placeholder="Buscar contenido..."
         />

@@ -9,28 +9,35 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("") // Resetear el error
+  const handleLogin = async (e) => {
+    e.preventDefault(); // Evitar recarga de la página
 
     try {
-      const res = await fetch("http://localhost:3000/api/users/login", {
+      const response = await fetch("http://localhost:3000/api/users/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, contraseña: password }), // Asegúrate de usar "contraseña" porque el backend espera ese campo
-      })
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, contraseña: password }), // Usar `password` como `contraseña`
+      });
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.message || "Error al iniciar sesión")
+      if (!response.ok) throw new Error("Error al iniciar sesión");
+
+      const data = await response.json();
+
+      // Guardar en localStorage (solo disponible en el cliente)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
 
-      // Si es exitoso, redirigir al usuario a la página principal
-      router.push("/")
-    } catch (err: any) {
-      setError(err.message)
+      // Redirigir al inicio
+      router.push("/");
+    } catch (error) {
+      console.error("Error en el login:", error);
+      setError("Correo o contraseña incorrectos.");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-[#1a0f2e] text-white flex justify-center items-center p-4">
@@ -45,7 +52,6 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 rounded bg-gray-800 text-white"
               placeholder="Ingrese su correo"
-              required // Asegúrate de que los campos sean requeridos
             />
           </div>
           <div>
@@ -56,7 +62,6 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 rounded bg-gray-800 text-white"
               placeholder="Ingrese su contraseña"
-              required
             />
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -69,5 +74,5 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }
