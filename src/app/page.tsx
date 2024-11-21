@@ -4,14 +4,97 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Search } from 'lucide-react'
 import Image from "next/image"
-import { useRouter } from 'next/navigation'
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function HomePage() {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [user, setUser] = useState(null);
+
+  // Cargar datos del usuario desde localStorage
+  useEffect(() => {
+    try {
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser && typeof parsedUser === "object") {
+          setUser(parsedUser);
+        } else {
+          console.warn("Datos de usuario mal formateados en localStorage.");
+          setUser(null);
+        }
+      } else {
+        console.info("No se encontró usuario en localStorage.");
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Error al recuperar el usuario de localStorage:", error);
+      setUser(null);
+    }
+  }, []);
+
+  // Manejar el cierre de sesión
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setUser(null);
+    router.push("/login");
+  };
+
+  // Manejar la búsqueda
+  const handleSearch = async () => {
+    const user = JSON.parse(localStorage.getItem("user"))
+      if (!user || user.es_premium === 0) {
+      router.push("/subscribe")
+      return
+    }
+    
+    if (searchQuery.trim() === "") return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/content/search?query=${encodeURIComponent(searchQuery.trim())}`
+      );
+      if (!res.ok) throw new Error("Error al buscar contenido");
+
+      const data = await res.json();
+
+      if (data && data[0]) {
+        router.push(
+          `/movie-details?title=${encodeURIComponent(searchQuery.trim())}&result=${encodeURIComponent(
+            JSON.stringify(data[0])
+          )}`
+        );
+      } else {
+        console.warn("No se encontraron resultados.");
+      }
+    } catch (error) {
+      console.error("Error en la búsqueda:", error);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  // Control del carrusel
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % streamingServices.length);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleCarouselClick = () => {
+    router.push('/streaming-comparison')
+  }
 
   const streamingServices = [
     { name: "Netflix", image: "/images/BrandAssets_Logos_01-Wordmark.jpg" },
@@ -55,40 +138,61 @@ export default function HomePage() {
     }
   ]
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % streamingServices.length)
-    }, 5000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  const handleSearch = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim() !== "") {
-      router.push(`/movie-details?title=${encodeURIComponent(searchQuery.trim())}`)
-    }
-  }
-
-  const handleCarouselClick = () => {
-    router.push('/streaming-comparison')
-  }
-
   return (
     <div className="min-h-screen bg-[#1a0f2e] text-white p-4">
-      {/* Search Bar */}
+      {/* Header con funcionalidad de usuario */}
+      <header className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Inicio</h1>
+        <Link href="/platforms">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+            Ver Plataformas
+          </button>
+        </Link>
+        <div className="flex space-x-4">
+          {user ? (
+            <>
+              <span className="text-white text-lg">Hola, {user.nombre}</span>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                  Ingresar
+                </button>
+              </Link>
+              <Link href="/register">
+                <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                  Registrarse
+                </button>
+              </Link>
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* Barra de búsqueda actualizada */}
       <div className="relative max-w-2xl mx-auto mb-8">
-        <Input 
+        <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={handleSearch}
-          className="w-full rounded-full bg-white py-6 pl-4 pr-12 text-black" 
-          placeholder="Search..." 
+          onKeyDown={handleKeyDown} // Agregado para manejar "Enter"
+          className="w-full rounded-full bg-white py-6 pl-4 pr-12 text-black"
+          placeholder="Buscar contenido..."
         />
         <div className="absolute right-0 top-0 bottom-0 w-12 flex items-center justify-center bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] rounded-r-full">
-          <Search className="w-6 h-6 text-white" />
+          <button onClick={handleSearch}>
+            <Search className="w-6 h-6 text-white" />
+          </button>
         </div>
       </div>
 
+      {/* Carrusel, destacados y noticias se mantienen */}
       <div className="flex flex-col lg:flex-row gap-8 max-w-[1400px] mx-auto">
         <div className="flex-1 space-y-8">
           {/* Streaming Services Carousel */}
