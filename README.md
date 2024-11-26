@@ -5,6 +5,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 First, run the development server after install:
 
 ```bash
+configurar db
+
+(back)
+npm install
+
+npx nodemon server.js
+
+(front)
 npm install
 
 npm run dev
