@@ -1,5 +1,10 @@
 'use client'
+import { io } from 'socket.io-client';
 
+if (typeof window !== 'undefined') {
+  (window as any).io = io;
+}
+import WebSocketDemo from "@/components/ui/WebSocketDemo"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Search } from 'lucide-react'
@@ -191,6 +196,8 @@ export default function HomePage() {
           </button>
         </div>
       </div>
+      <WebSocketDemo />
+
 
       {/* Carrusel, destacados y noticias se mantienen */}
       <div className="flex flex-col lg:flex-row gap-8 max-w-[1400px] mx-auto">

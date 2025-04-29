@@ -2,6 +2,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+crear .env en back creo:
+PORT=3000
+DB_HOST= tus datos supongo
+DB_USER= tus datos supongo
+DB_PASSWORD= tus datos supongo
+DB_NAME=streamchoice
+JWT_SECRET=StreamChoice
+
 First, run the development server after install:
 
 ```bash
