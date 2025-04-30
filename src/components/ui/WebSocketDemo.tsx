@@ -13,23 +13,36 @@ export default function WebSocketDemo() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    if (socket) {
-      socket.on("nuevo_usuario", (usuario: { nombre: string; email: string }) => {
-        const id = Date.now();
-        setNotifications((prev) => [
-          ...prev,
-          { id, message: `🎉 ${usuario.nombre} se ha registrado` }
-        ]);
+    if (!socket) return;
 
-        setTimeout(() => {
-          setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-        }, 5000);
-      });
+    const handleNotificacion = (message: string) => {
+      const id = Date.now();
+      setNotifications((prev) => [...prev, { id, message }]);
 
-      return () => {
-        socket.off("nuevo_usuario");
-      };
-    }
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+      }, 5000);
+    };
+
+    const handleNuevoUsuario = (usuario: { nombre: string; email: string }) => {
+      const id = Date.now();
+      setNotifications((prev) => [
+        ...prev,
+        { id, message: `🎉 ${usuario.nombre} se ha registrado` }
+      ]);
+
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+      }, 5000);
+    };
+
+    socket.on("notificacion", handleNotificacion);
+    socket.on("nuevo_usuario", handleNuevoUsuario);
+
+    return () => {
+      socket.off("notificacion", handleNotificacion);
+      socket.off("nuevo_usuario", handleNuevoUsuario);
+    };
   }, [socket]);
 
   return (

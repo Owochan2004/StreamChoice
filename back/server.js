@@ -53,7 +53,12 @@ io.on("connection", (socket) => {
   const interval = setInterval(() => {
     console.log("Enviando notificación al cliente...");
     socket.emit("notificacion", "¡Nueva película disponible en Netflix!");
-  }, 20000);
+  }, 25000);
+
+  socket.on("new-comment", (data) => {
+    console.log("Nuevo comentario recibido:", data);
+    io.emit("new-comment", data); // Reenvía el evento a todos los clientes conectados
+  });
 
   socket.on("disconnect", () => {
     console.log("Cliente WebSocket desconectado");
