@@ -27,8 +27,7 @@ app.use(bodyParser.json());
 const PORT = process.env.PORT || 3000;
 
 // Rutas
-const userRoutes = require('./routes/userRoutes')(io); // 👈 Inyectamos `io`
-
+const userRoutes = require('./routes/userRoutes')(io); // Inyectamos `io` para usarlo dentro del router si es necesario
 
 app.use('/api/users', userRoutes);
 app.use('/api/platforms', platformRoutes);
@@ -50,8 +49,15 @@ io.on("connection", (socket) => {
 
   socket.emit("bienvenida", "¡Conectado al WebSocket!");
 
+  // Enviar notificación periódica
+  const interval = setInterval(() => {
+    console.log("Enviando notificación al cliente...");
+    socket.emit("notificacion", "¡Nueva película disponible en Netflix!");
+  }, 20000);
+
   socket.on("disconnect", () => {
     console.log("Cliente WebSocket desconectado");
+    clearInterval(interval); // Limpia el intervalo al desconectar
   });
 });
 
