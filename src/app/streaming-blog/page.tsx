@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import { useSocket } from "@/hooks/useSocket"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -9,7 +11,12 @@ import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import { Info, MessageCircle, X } from 'lucide-react'
 
-const articles = [
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+const initialArticles = [
   {
     title: "‘Uzumaki’: la oportunidad desperdiciada",
     content: "¿Desastre en espiral? Productor de 'Uzumaki' responde a las críticas por la pésima animación de la serie.",
@@ -73,8 +80,102 @@ const streamingServices = {
 }
 
 export default function Component() {
+  const { socket } = useSocket()
   const [expandedComments, setExpandedComments] = useState<number | null>(null)
   const [newComments, setNewComments] = useState<{ [key: number]: string }>({})
+  const [articles, setArticles] = useState([...initialArticles]) // Usa initialArticles
+
+  // Cargar comentarios iniciales
+  useEffect(() => {
+    const loadComments = async () => {
+      const { data } = await supabase
+        .from('comments')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (data) {
+        setArticles(prevArticles => 
+          prevArticles.map((article, index) => ({
+            ...article,
+            comments: [
+              ...article.comments,
+              ...data
+                .filter(d => d.article_id === index)
+                .map(c => ({ 
+                  user: c.username,  
+                  text: c.text 
+                }))
+            ]
+          }))
+        )
+      }
+    }
+    loadComments()
+  }, [])
+
+  // Escuchar nuevos comentarios via WebSocket
+  useEffect(() => {
+    if (!socket) return
+
+    const handleNewComment = (data: { 
+      index: number; 
+      comment: { 
+        user: string; 
+        text: string 
+      }
+    }) => {
+      setArticles(prev => prev.map((article, i) => 
+        i === data.index ? {
+          ...article,
+          comments: [data.comment, ...article.comments] 
+        } : article
+      ))
+    }
+
+    socket.on("new-comment", handleNewComment)
+    return () => {
+      socket.off("new-comment", handleNewComment)
+    }
+  }, [socket])
+
+  const addComment = async (index: number) => {
+    const commentText = newComments[index]?.trim()
+    if (!commentText || !socket) return
+
+    try {
+      // Guardar en Supabase
+      const { error } = await supabase
+        .from('comments')
+        .insert({
+          article_id: index,
+          username: "You", // Cambiar por usuario real
+          text: commentText
+        })
+
+      if (!error) {
+        // Actualizar estado local
+        setArticles(prev => prev.map((article, i) => 
+          i === index ? {
+            ...article,
+            comments: [{ user: "You", text: commentText }, ...article.comments]
+          } : article
+        ))
+        
+        // Enviar por WebSocket
+        socket.emit("new-comment", {
+          index,
+          comment: { 
+            user: "You", 
+            text: commentText 
+          }
+        })
+
+        setNewComments(prev => ({ ...prev, [index]: '' }))
+      }
+    } catch (err) {
+      console.error('Error saving comment:', err)
+    }
+  }
 
   const toggleComments = (index: number) => {
     setExpandedComments(expandedComments === index ? null : index)
@@ -84,12 +185,6 @@ export default function Component() {
     setNewComments(prev => ({ ...prev, [index]: value }))
   }
 
-  const addComment = (index: number) => {
-    if (newComments[index]?.trim()) {
-      articles[index].comments.push({ user: "You", text: newComments[index].trim() })
-      setNewComments(prev => ({ ...prev, [index]: '' }))
-    }
-  }
 
   return (
     <div className="min-h-screen bg-[#1a0f2e] text-white p-4 space-y-8">
