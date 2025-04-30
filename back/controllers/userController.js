@@ -30,7 +30,7 @@ const registerUser = async (req, res, io) => {
   }
 };
 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, io) => { // <-- Añadir io como parámetro
   const { email, contraseña } = req.body;
 
   if (!email || !contraseña) {
@@ -49,6 +49,11 @@ const loginUser = async (req, res) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Contraseña incorrecta" });
+    }
+
+    // ✅ Emitir evento WebSocket para login
+    if (io) {
+      io.emit('nuevo_login', { nombre: usuario.nombre, email: usuario.email });
     }
 
     const token = jwt.sign(

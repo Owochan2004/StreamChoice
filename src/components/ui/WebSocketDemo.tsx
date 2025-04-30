@@ -36,12 +36,26 @@ export default function WebSocketDemo() {
       }, 5000);
     };
 
+    const handleNuevoLogin = (usuario: { nombre: string; email: string }) => {
+      const id = Date.now();
+      setNotifications((prev) => [
+        ...prev,
+        { id, message: `👍 ${usuario.nombre} ha iniciado sesión` }
+      ]);
+    
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+      }, 5000);
+    };
+
     socket.on("notificacion", handleNotificacion);
     socket.on("nuevo_usuario", handleNuevoUsuario);
+    socket.on("nuevo_login", handleNuevoLogin);
 
     return () => {
       socket.off("notificacion", handleNotificacion);
       socket.off("nuevo_usuario", handleNuevoUsuario);
+      socket.off("nuevo_login", handleNuevoLogin);
     };
   }, [socket]);
 

@@ -5,8 +5,6 @@ module.exports = (io) => {
   const router = express.Router();
 
   router.post('/register', (req, res) => userController.registerUser(req, res, io));
-  router.post('/login', userController.loginUser);
-  router.patch("/:id/subscribe", userController.subscribeUser);
-
+  router.post('/login', (req, res) => userController.loginUser(req, res, io)); // <-- Añadir io  
   return router;
 };
