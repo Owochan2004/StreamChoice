@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
   setInterval(() => {
     console.log("Enviando notificación al cliente...");
     socket.emit("notificacion", "¡Nueva película disponible en Netflix!");
-  }, 10000); // Cada 60 segundos
+  }, 20000); // Cada 60 segundos
 
   socket.on("disconnect", () => {
     console.log("Cliente WebSocket desconectado");
