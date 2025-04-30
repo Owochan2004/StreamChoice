@@ -1,9 +1,12 @@
 const express = require('express');
-const router = express.Router();
 const userController = require('../controllers/userController');
 
-router.post('/register', userController.registerUser);
-router.post('/login', userController.loginUser);
-router.patch("/:id/subscribe", userController.subscribeUser);
+module.exports = (io) => {
+  const router = express.Router();
 
-module.exports = router;
+  router.post('/register', (req, res) => userController.registerUser(req, res, io));
+  router.post('/login', userController.loginUser);
+  router.patch("/:id/subscribe", userController.subscribeUser);
+
+  return router;
+};

@@ -14,18 +14,20 @@ export default function WebSocketDemo() {
 
   useEffect(() => {
     if (socket) {
-      socket.on("notificacion", (message: string) => {
+      socket.on("nuevo_usuario", (usuario: { nombre: string; email: string }) => {
         const id = Date.now();
-        setNotifications((prev) => [...prev, { id, message }]);
+        setNotifications((prev) => [
+          ...prev,
+          { id, message: `🎉 ${usuario.nombre} se ha registrado` }
+        ]);
 
-        // Eliminar la notificación después de 5 segundos
         setTimeout(() => {
           setNotifications((prev) => prev.filter((notif) => notif.id !== id));
         }, 5000);
       });
 
       return () => {
-        socket.off("notificacion");
+        socket.off("nuevo_usuario");
       };
     }
   }, [socket]);
